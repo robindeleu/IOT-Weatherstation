@@ -1,0 +1,5 @@
+{
+  "host": "backend-app.feathersjs.com",
+  "port": "PORT",
+  "mongodb": "mongodb://mongodb:27017/backend"
+}

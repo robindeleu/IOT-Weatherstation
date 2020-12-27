@@ -1,0 +1,75 @@
+version: '3.3'
+services:
+  ingest:
+    build:
+      context: './ingest'
+    depends_on:
+      - influxdb
+
+  backend: 
+    build:
+      context: ./backend
+    depends_on:
+      - influxdb
+      - mongodb
+    expose:
+      - "8086"
+    # only for development purposes:
+    ports:
+      - 3030:3030
+
+  frontend:
+    build:
+      context: ./frontend
+    depends_on:
+      - influxdb
+      - mongodb
+    ports:
+      - 8080:80
+
+  influxdb:
+    image: 'influxdb'
+    volumes:
+      - influxdb-data:/var/lib/influxdb
+    expose:
+      - "8086"
+    # only for development purposes:
+    ports:
+      - 8086:8086
+
+  mongodb:
+    image: 'mongo'
+    volumes:
+      - mongodb-data:/data/db
+    expose:
+      - "27017"
+    # only for development purposes:
+    ports:
+      - 27017:27017
+
+  redis:
+    image: 'redis'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+
+  grafana:
+    image: 'grafana/grafana'
+    depends_on: 
+      - influxdb
+    ports:
+      - 3000:3000
+    environment:
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_BASIC_ENABLED=false
+      - GF_ENABLE_GZIP=true
+      - PLUGINS=redis-datasource
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - ./grafana/config.ini:/etc/grafana/config.ini
+
+volumes:
+  influxdb-data:
+  redis-data:
+  mongodb-data:
